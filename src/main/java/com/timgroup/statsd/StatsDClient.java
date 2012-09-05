@@ -55,6 +55,26 @@ public final class StatsDClient {
 
     /**
      * Create a new StatsD client communicating with a StatsD instance on the
+     * specified host and port.  The new client will
+     * attempt to open a connection to the StatsD server immediately upon
+     * instantiation, and may throw an exception if that a connection cannot
+     * be established. Once a client has been instantiated in this way, all
+     * exceptions thrown during subsequent usage are consumed, guaranteeing
+     * that failures in metrics will not affect normal code execution.
+     * 
+     * @param hostname
+     *     the host name of the targeted StatsD server
+     * @param port
+     *     the port of the targeted StatsD server
+     * @throws StatsDClientException
+     *     if the client could not be started
+     */
+    public StatsDClient(String hostname, int port) throws StatsDClientException {
+        this(null, hostname, port, NO_OP_HANDLER);
+    }
+
+    /**
+     * Create a new StatsD client communicating with a StatsD instance on the
      * specified host and port. All messages send via this client will have
      * their keys prefixed with the specified string. The new client will
      * attempt to open a connection to the StatsD server immediately upon
@@ -62,7 +82,7 @@ public final class StatsDClient {
      * be established. Once a client has been instantiated in this way, all
      * exceptions thrown during subsequent usage are consumed, guaranteeing
      * that failures in metrics will not affect normal code execution.
-     * 
+     *
      * @param prefix
      *     the prefix to apply to keys sent via this client
      * @param hostname
@@ -75,7 +95,7 @@ public final class StatsDClient {
     public StatsDClient(String prefix, String hostname, int port) throws StatsDClientException {
         this(prefix, hostname, port, NO_OP_HANDLER);
     }
-    
+
     /**
      * Create a new StatsD client communicating with a StatsD instance on the
      * specified host and port. All messages send via this client will have
@@ -98,7 +118,8 @@ public final class StatsDClient {
      * @throws StatsDClientException
      *     if the client could not be started
      */
-    public StatsDClient(String prefix, String hostname, int port, StatsDClientErrorHandler errorHandler) throws StatsDClientException {
+    public StatsDClient(String prefix, String hostname, int port,
+                        StatsDClientErrorHandler errorHandler) throws StatsDClientException {
         this.prefix = prefix;
         this.handler = errorHandler;
         
@@ -140,7 +161,11 @@ public final class StatsDClient {
      *     the amount to adjust the counter by
      */
     public void count(String aspect, int delta) {
-        send(String.format("%s.%s:%d|c", prefix, aspect, delta));
+        if (this.prefix != null && this.prefix.length() > 0) {
+            send(String.format("%s.%s:%d|c", prefix, aspect, delta));
+        } else {
+            send(String.format("%s:%d|c", aspect, delta));
+        }
     }
 
     /**
@@ -192,11 +217,15 @@ public final class StatsDClient {
      *     the new reading of the gauge
      */
     public void recordGaugeValue(String aspect, int value) {
-        send(String.format("%s.%s:%d|g", prefix, aspect, value));
+        if (this.prefix != null && this.prefix.length() > 0) {
+            send(String.format("%s.%s:%d|g", prefix, aspect, value));
+        } else {
+            send(String.format("%s:%d|g", aspect, value));
+        }
     }
 
     /**
-     * Convenience method equivalent to {@link #recordGaugeValue(String)}. 
+     * Convenience method equivalent to {@link #recordGaugeValue(String, int)}.
      */
     public void gauge(String aspect, int value) {
         recordGaugeValue(aspect, value);
@@ -213,11 +242,15 @@ public final class StatsDClient {
      *     the time in milliseconds
      */
     public void recordExecutionTime(String aspect, int timeInMs) {
-        send(String.format("%s.%s:%d|ms", prefix, aspect, timeInMs));
+        if (this.prefix != null && this.prefix.length() > 0) {
+            send(String.format("%s.%s:%d|ms", prefix, aspect, timeInMs));
+        } else {
+            send(String.format("%s:%d|ms", aspect, timeInMs));
+        }
     }
 
     /**
-     * Convenience method equivalent to {@link #recordExecutionTime(String)}. 
+     * Convenience method equivalent to {@link #recordExecutionTime(String, int)}.
      */
     public void time(String aspect, int value) {
         recordExecutionTime(aspect, value);
