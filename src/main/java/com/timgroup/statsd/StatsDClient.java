@@ -10,12 +10,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A simple StatsD client implementation facilitating metrics recording.
- * 
+ *
  * <p>Upon instantiation, this client will establish a socket connection to a StatsD instance
  * running on the specified host and port. Metrics are then sent over this connection as they are
  * received by the client.
  * </p>
- * 
+ *
  * <p>Three key methods are provided for the submission of data-points for the application under
  * scrutiny:
  * <ul>
@@ -27,17 +27,17 @@ import java.util.concurrent.TimeUnit;
  * IO operations being carried out in a separate thread. Furthermore, these methods are guaranteed
  * not to throw an exception which may disrupt application execution.
  * </p>
- * 
+ *
  * <p>As part of a clean system shutdown, the {@link #stop()} method should be invoked
  * on any StatsD clients.</p>
- * 
+ *
  * @author Tom Denley
  *
  */
 public final class StatsDClient {
 
     private static final StatsDClientErrorHandler NO_OP_HANDLER = new StatsDClientErrorHandler() {
-        @Override public void handle(Exception e) { /* No-op */ }
+        public void handle(Exception e) { /* No-op */ }
     };
 
     private final String prefix;
@@ -46,7 +46,7 @@ public final class StatsDClient {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor(new ThreadFactory() {
         final ThreadFactory delegate = Executors.defaultThreadFactory();
-        @Override public Thread newThread(Runnable r) {
+        public Thread newThread(Runnable r) {
             Thread result = delegate.newThread(r);
             result.setName("StatsD-" + result.getName());
             return result;
@@ -61,7 +61,7 @@ public final class StatsDClient {
      * be established. Once a client has been instantiated in this way, all
      * exceptions thrown during subsequent usage are consumed, guaranteeing
      * that failures in metrics will not affect normal code execution.
-     * 
+     *
      * @param hostname
      *     the host name of the targeted StatsD server
      * @param port
@@ -106,7 +106,7 @@ public final class StatsDClient {
      * exceptions thrown during subsequent usage are passed to the specified
      * handler and then consumed, guaranteeing that failures in metrics will
      * not affect normal code execution.
-     * 
+     *
      * @param prefix
      *     the prefix to apply to keys sent via this client
      * @param hostname
@@ -122,7 +122,7 @@ public final class StatsDClient {
                         StatsDClientErrorHandler errorHandler) throws StatsDClientException {
         this.prefix = prefix;
         this.handler = errorHandler;
-        
+
         try {
             this.clientSocket = new DatagramSocket();
             this.clientSocket.connect(new InetSocketAddress(hostname, port));
@@ -152,9 +152,9 @@ public final class StatsDClient {
 
     /**
      * Adjusts the specified counter by a given delta.
-     * 
+     *
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
-     * 
+     *
      * @param aspect
      *     the name of the counter to adjust
      * @param delta
@@ -170,9 +170,9 @@ public final class StatsDClient {
 
     /**
      * Increments the specified counter by one.
-     * 
+     *
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
-     * 
+     *
      * @param aspect
      *     the name of the counter to increment
      */
@@ -189,9 +189,9 @@ public final class StatsDClient {
 
     /**
      * Decrements the specified counter by one.
-     * 
+     *
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
-     * 
+     *
      * @param aspect
      *     the name of the counter to decrement
      */
@@ -208,9 +208,9 @@ public final class StatsDClient {
 
     /**
      * Records the latest fixed value for the specified named gauge.
-     * 
+     *
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
-     * 
+     *
      * @param aspect
      *     the name of the gauge
      * @param value
@@ -233,9 +233,9 @@ public final class StatsDClient {
 
     /**
      * Records an execution time in milliseconds for the specified named operation.
-     * 
+     *
      * <p>This method is non-blocking and is guaranteed not to throw an exception.</p>
-     * 
+     *
      * @param aspect
      *     the name of the timed operation
      * @param timeInMs
@@ -259,7 +259,7 @@ public final class StatsDClient {
     private void send(final String message) {
         try {
             executor.execute(new Runnable() {
-                @Override public void run() {
+                public void run() {
                     blockingSend(message);
                 }
             });

@@ -11,9 +11,8 @@ public interface StatsDClientErrorHandler {
     /**
      * Handle the given exception, which occurred during a StatsD client operation.
      * 
-     * @param exception
-     *     the {@link Exception} that occurred
+     * @param ex the {@link Exception} that occurred
      */
-    void handle(Exception e);
+    void handle(Exception ex);
 
 }
